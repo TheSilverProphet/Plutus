@@ -2,7 +2,6 @@
 # Made by Isaac Delly
 # https://github.com/Isaacdelly/Plutus
 
-from fastecdsa import keys, curve
 from ellipticcurve.privateKey import PrivateKey
 import platform
 import multiprocessing
@@ -17,11 +16,7 @@ DATABASE = r'database/11_13_2022/'
 def generate_private_key():
     return binascii.hexlify(os.urandom(32)).decode('utf-8').upper()
 
-def private_key_to_public_key(private_key, fastecdsa):
-    if fastecdsa:
-        key = keys.get_public_key(int('0x' + private_key, 0), curve.secp256k1)
-        return '04' + (hex(key.x)[2:] + hex(key.y)[2:]).zfill(128)
-    else:
+def private_key_to_public_key(private_key):
         pk = PrivateKey().fromString(bytes.fromhex(private_key))
         return '04' + pk.publicKey().toString().hex().upper()
 
@@ -62,7 +57,7 @@ def private_key_to_wif(private_key):
 def main(database, args):
     while True:
         private_key = generate_private_key()
-        public_key = private_key_to_public_key(private_key, args['fastecdsa']) 
+        public_key = private_key_to_public_key(private_key) 
         address = public_key_to_address(public_key)
 
         if args['verbose']:
@@ -113,7 +108,6 @@ if __name__ == '__main__':
     args = {
         'verbose': 0,
         'substring': 8,
-        'fastecdsa': platform.system() in ['Linux', 'Darwin'],
         'cpu_count': multiprocessing.cpu_count(),
     }
     
